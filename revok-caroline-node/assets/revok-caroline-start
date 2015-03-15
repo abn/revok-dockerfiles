@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+export ROOT_PATH=${REVOK_HOME}
+source ${REVOK_HOME}/bin/setenv.sh
+
+SVC_NAME=rest
+SVC_LOG_FILE="${REVOK_HOME}/var/log/${SVC_NAME}.log"
+
+# init database
+ruby ${REVOK_HOME}/db/db_init.rb
+
+# start caroline
+while true; do 
+    sleep 1
+    unbuffer ruby ${REVOK_HOME}/caroline/carolined.rb
+done >> ${SVC_LOG_FILE} 2>> ${SVC_LOG_FILE}
