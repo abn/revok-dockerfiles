@@ -15,10 +15,14 @@ RUN yum -y install \
     deltarpm wget git supervisor tar bzip2 \
     ruby ImageMagick openssl sslscan expect
 
+# install any updates
+RUN yum -y update
+
 # install dependencies for bundles
 RUN yum -y install \
     rubygems ruby-devel \
-    rubygem-nokogiri rubygem-pg rubygem-mechanize rubygem-rack rubygem-stomp rubygem-typhoeus rubygem-mail \
+    rubygem-nokogiri rubygem-pg rubygem-mechanize rubygem-rack rubygem-stomp \
+    rubygem-typhoeus rubygem-mail \
     make automake patch gcc gcc-c++
 RUN gem install bundle
 
@@ -57,6 +61,8 @@ RUN bundle install
 RUN mkdir -p ${REVOK_CONF} ${REVOK_VAR}
 RUN cd ${REVOK_VAR} \
     && mkdir log pid lock run
+
+VOLUME ["${REVOK_CONF}", "${REVOK_VAR}/log", "${REVOK_VAR}/run"]
 
 ONBUILD USER root
 ONBUILD RUN yum -y update && yum -y clean all
