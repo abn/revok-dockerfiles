@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+export ROOT_PATH=${REVOK_HOME}
+source ${REVOK_HOME}/bin/setenv.sh
+
+SVC_NAME=webconsole
+SVC_LOG_FILE="${REVOK_HOME}/var/log/${SVC_NAME}.log"
+rackup -p ${WEB_PORT} ${REVOK_HOME}/webconsole/config.ru >> ${SVC_LOG_FILE} 2>> ${SVC_LOG_FILE}
