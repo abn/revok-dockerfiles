@@ -33,7 +33,7 @@ RUN yum -y install \
     python-pillow pyOpenSSL python-cffi python-cryptography python-passlib
 RUN pip install mitmproxy
 
-# install phantonjs
+# install phantomjs
 RUN cd /tmp \
     && wget ${PHANTOMJS_URL} \
     && tar xjvf $(basename ${PHANTOMJS_URL}) \
