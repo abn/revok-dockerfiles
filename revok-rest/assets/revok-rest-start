@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+export ROOT_PATH=${REVOK_HOME}
+source ${REVOK_HOME}/bin/setenv.sh
+
+SVC_NAME=rest
+SVC_LOG_FILE="${ROOT_PATH}/var/log/${SVC_NAME}.log"
+ruby ${REVOK_HOME}/rest/rest_served.rb >> ${SVC_LOG_FILE} 2>> ${SVC_LOG_FILE}
