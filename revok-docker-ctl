@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DOCKER_CMD="sudo docker"
+export DOCKER_CMD="sudo docker"
 
 function log(){
     echo "[REVOK] $1"
@@ -21,11 +21,15 @@ if [ ! -d ${RT} ]; then
 fi
 
 function build(){
-    find ./ -maxdepth 1 -type d -name "revok-*" \
+    # build base seperately
+    ${DOCKER_CMD} build --tage revok/base ./revok-base
+
+    # build all other images
+    find ./ -maxdepth 1 -type d -name "revok-*" ! -name "revok-base" \
         -exec bash -c \
             'for container do
                 NAME=$(basename $container)
-                sudo docker build --tag ${NAME/"revok-"/"revok/"} $container
+                ${DOCKER_CMD} build --tag ${NAME/"revok-"/"revok/"} $container
              done' -- {} \;
 }
 
@@ -34,7 +38,7 @@ function pull(){
         -exec bash -c \
             'for container do
                 NAME=$(basename $container)
-                sudo docker pull ${NAME/"revok-"/"revok/"}
+                ${DOCKER_CMD} pull ${NAME/"revok-"/"revok/"}
              done' -- {} \;
 }
 
