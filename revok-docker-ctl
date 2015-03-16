@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+
+DOCKER_CMD="sudo docker"
+
+function log(){
+    echo "[REVOK] $1"
+}
+
+function fail(){
+    2>&1 log "[FAIL] $1"
+    exit -1
+}
+
+if [ -z ${RT} ]; then
+    BASE=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+    RT=${BASE}/runtime
+fi
+
+if [ ! -d ${RT} ]; then
+    fail "Runtime directory does not exist at ${RT}"
+fi
+
+function build(){
+    find ./ -maxdepth 1 -type d -name "revok-*" \
+        -exec bash -c \
+            'for container do
+                NAME=$(basename $container)
+                sudo docker build --tag ${NAME/"revok-"/"revok/"} $container
+             done' -- {} \;
+}
+
+function pull(){
+    find ./ -maxdepth 1 -type d -name "revok-*" \
+        -exec bash -c \
+            'for container do
+                NAME=$(basename $container)
+                sudo docker pull ${NAME/"revok-"/"revok/"}
+             done' -- {} \;
+}
+
+function status(){
+    ${DOCKER_CMD} ps | grep "revok/"
+}
+
+function stop(){
+    log "Stopping all revok/* containers ..."
+    ${DOCKER_CMD} ps \
+        | grep "revok/" | cut -d' ' -f 1 \
+        | xargs -I {} ${DOCKER_CMD} stop {}
+    ${DOCKER_CMD} rm revok-db revok-mq > /dev/null 2>&1
+}
+
+function start(){
+    COUNT=$(status | wc -l)
+
+    if [ ${COUNT} -gt 0 ]; then
+        fail "Revok containers seem to be running. Please stop them first."
+    fi
+
+    find ${RT} -maxdepth 1 -type d -exec chmod -R 777 {} \;
+
+    source ${RT}/conf/revok.conf
+
+    log "Starting database container ..."
+    ${DOCKER_CMD} run -d \
+        -p ${DB_PORT}:${DB_PORT} \
+        -v ${RT}/pgsql:/var/lib/pgsql \
+        --name revok-db \
+        revok/database || fail "Failed to start container!"
+    sleep 2
+
+    log "Starting activemq container ..."
+    ${DOCKER_CMD} run -d \
+        -p ${MSG_QUEUE_PORT}:${MSG_QUEUE_PORT} \
+        -v ${RT}/activemq/conf:/var/run/activemq/conf \
+        -v ${RT}/activemq/data:/opt/apache-activemq/data \
+        --name revok-mq \
+        revok/messaging-server || fail "Failed to start container!" 
+    sleep 2
+
+    log "Starting rest-api container ..."
+    ${DOCKER_CMD} run -d \
+        -p ${REST_PORT}:${REST_PORT} \
+        -v ${RT}/conf:${REVOK_HOME}/conf \
+        --link revok-mq:revok-mq \
+        revok/rest || "Failed to start container!"
+
+    log "Starting caroline container ..."
+    ${DOCKER_CMD} run -d \
+        -v ${RT}/conf:${REVOK_HOME}/conf \
+        -v ${RT}/report:${REVOK_HOME}/report \
+        --link revok-db:revok-db \
+        --link revok-mq:revok-mq \
+        revok/caroline-node || fail "Failed to start container!"
+
+    log "Starting webconsole container ..."
+    ${DOCKER_CMD} run -d \
+        -p ${WEB_PORT}:${WEB_PORT} \
+        -v ${RT}/conf:${REVOK_HOME}/conf \
+        -v ${RT}/httpd/conf.d:/etc/httpd/conf.d \
+        -v ${RT}/httpd/log:/var/log/httpd \
+        --link revok-db:revok-db \
+        --link revok-mq:revok-mq \
+        revok/webconsole || fail "Failed to start container!"
+}
+
+function usage(){
+    echo "Usage: ${BASH_SOURCE[0]} [build|pull|start|stop|restart|status]"
+    exit 0
+}
+
+if [ $# -ne 1 ]; then
+    log "No command provided"
+    usage
+fi
+
+case $1 in
+    build )
+        build ;;
+    pull )
+        pull ;;
+    start )
+        start ;;
+    stop )
+        stop ;;
+    restart )
+        stop && start ;;
+    status )
+        status ;;
+    * )
+        usage ;;
+esac
