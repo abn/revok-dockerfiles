@@ -13,6 +13,9 @@ USER root
 # install passenger
 RUN yum -y install httpd mod_passenger rubygem-passenger
 
+# patch for hard-coded rest uri
+RUN sed -i s/'127.0.0.1'/'revok-rest'/ ${REVOK_HOME}/webconsole/config.ru
+
 # prepare webconsole
 RUN cp -R ${REVOK_HOME}/webconsole /var/www/html/revok
 RUN ln -s /var/www/html/revok/public /var/www/html/scanner
