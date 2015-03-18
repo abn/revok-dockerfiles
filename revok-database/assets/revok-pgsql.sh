@@ -20,8 +20,18 @@ fi
         && echo "Created PGSQL user: ${REVOK_USER}"; }
 
 # create the revok database
-{ /bin/createdb --owner ${REVOK_USER} ${REVOK_DB} > /dev/null 2>&1 \
-    && echo "Created PGSQL database: ${REVOK_DB}"; }
+#/bin/createdb --owner ${REVOK_USER} ${REVOK_DB} > /dev/null 2>&1 \
+psql --command "CREATE DATABASE ${REVOK_DB} OWNER ${REVOK_USER};" \
+    && echo "Created PGSQL database: ${REVOK_DB}";
+
+psql \
+    --dbname=${REVOK_DB} \
+    --echo-all \
+    --file=${POST_INIT}/revok.sql
+
+psql \
+    --dbname=${REVOK_DB} \
+    --command "ALTER TABLE runcases OWNER TO ${REVOK_USER};"
 
 echo "host ${REVOK_DB} ${REVOK_USER} 0.0.0.0/0 md5" >> ${PGDATA}/pg_hba.conf
 echo "listen_addresses = '*'" >> ${PGDATA}/postgresql.conf
