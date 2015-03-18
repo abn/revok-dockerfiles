@@ -13,7 +13,7 @@ RUN yum -y install \
 RUN yum -y install \
     rubygems ruby-devel \
     rubygem-nokogiri rubygem-pg rubygem-mechanize rubygem-rack rubygem-stomp \
-    rubygem-typhoeus rubygem-mail \
+    rubygem-typhoeus rubygem-mail rubygem-sequel \
     make automake patch gcc gcc-c++
 RUN gem install bundle
 
