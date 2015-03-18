@@ -1,22 +1,13 @@
 FROM fedora:latest
 MAINTAINER "Arun Neelicattu" <arun.neelicattu@gmail.com>
 
-ENV REVOK_VERSION=0.8.1
-ENV REVOK_USER=revok
-ENV REVOK_HOME=/opt/revok
-ENV REVOK_CONF=${REVOK_HOME}/conf
-ENV REVOK_VAR=${REVOK_HOME}/var
-
-ENV PHANTOMJS_VERSION=1.9.8
-ENV PHANTOMJS_URL=http://mvn.quonb.org/repo/com/github/klieber/phantomjs/${PHANTOMJS_VERSION}/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2
+# install any updates
+RUN yum -y update
 
 # install general dependencies
 RUN yum -y install \
     deltarpm wget git supervisor tar bzip2 \
     ruby ImageMagick openssl sslscan expect
-
-# install any updates
-RUN yum -y update
 
 # install dependencies for bundles
 RUN yum -y install \
@@ -33,10 +24,20 @@ RUN yum -y install \
     python-pillow pyOpenSSL python-cffi python-cryptography python-passlib
 RUN pip install mitmproxy
 
+ENV REVOK_VERSION=0.8.1
+ENV REVOK_USER=revok
+ENV REVOK_HOME=/opt/revok
+ENV REVOK_CONF=${REVOK_HOME}/conf
+ENV REVOK_VAR=${REVOK_HOME}/var
+
+ENV PHANTOMJS_VERSION=1.9.8
+ENV PHANTOMJS_URL=https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2
+
 # install phantomjs
 RUN cd /tmp \
-    && wget ${PHANTOMJS_URL} \
-    && tar xjvf $(basename ${PHANTOMJS_URL}) \
+    && TARBALL=$(basename ${PHANTOMJS_URL}) \
+    && wget -O ${TARBALL} ${PHANTOMJS_URL} \
+    && tar xjvf ${TARBALL} \
     && find ./ -type f -name phantomjs -exec mv {} /usr/bin/. \; \
     && rm -rf phantomjs-${PHANTOMJS_VERSION}*
 
