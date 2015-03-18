@@ -8,7 +8,7 @@ ENV REVOK_CONF=${REVOK_HOME}/conf
 ENV REVOK_VAR=${REVOK_HOME}/var
 
 ENV PHANTOMJS_VERSION=1.9.8
-ENV PHANTOMJS_URL=https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2
+ENV PHANTOMJS_URL=http://mvn.quonb.org/repo/com/github/klieber/phantomjs/${PHANTOMJS_VERSION}/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2
 
 # install general dependencies
 RUN yum -y install \
