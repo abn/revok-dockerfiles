@@ -86,25 +86,28 @@ function start(){
     ${DOCKER_CMD} run -d \
         -p ${REST_PORT}:${REST_PORT} \
         -v ${RT}/conf:${REVOK_HOME}/conf \
-        --link revok-mq:revok-mq \
+        -v ${RT}/log:/opt/revok/var/log \
+        --link revok-mq:localhost \
         revok/rest || "Failed to start container!"
 
     log "Starting caroline container ..."
     ${DOCKER_CMD} run -d \
         -v ${RT}/conf:${REVOK_HOME}/conf \
         -v ${RT}/report:${REVOK_HOME}/report \
-        --link revok-db:revok-db \
-        --link revok-mq:revok-mq \
+        -v ${RT}/log:/opt/revok/var/log \
+        --link revok-db:localhost \
+        --link revok-mq:localhost \
         revok/caroline-node || fail "Failed to start container!"
 
     log "Starting webconsole container ..."
     ${DOCKER_CMD} run -d \
         -p ${WEB_PORT}:${WEB_PORT} \
         -v ${RT}/conf:${REVOK_HOME}/conf \
+        -v ${RT}/log:/opt/revok/var/log \
         -v ${RT}/httpd/conf.d:/etc/httpd/conf.d \
         -v ${RT}/httpd/log:/var/log/httpd \
-        --link revok-db:revok-db \
-        --link revok-mq:revok-mq \
+        --link revok-db:localhost \
+        --link revok-mq:localhost \
         revok/webconsole || fail "Failed to start container!"
 }
 
