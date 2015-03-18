@@ -22,7 +22,7 @@ fi
 
 function build(){
     # build base seperately
-    ${DOCKER_CMD} build --tage revok/base ./revok-base
+    ${DOCKER_CMD} build --tag revok/base ./revok-base
 
     # build all other images
     find ./ -maxdepth 1 -type d -name "revok-*" ! -name "revok-base" \
