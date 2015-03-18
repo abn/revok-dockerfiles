@@ -51,7 +51,7 @@ function stop(){
     ${DOCKER_CMD} ps \
         | grep "revok/" | cut -d' ' -f 1 \
         | xargs -I {} ${DOCKER_CMD} stop {}
-    ${DOCKER_CMD} rm revok-db revok-mq > /dev/null 2>&1
+    ${DOCKER_CMD} rm revok-db revok-mq revok-rest > /dev/null 2>&1
 }
 
 function start(){
@@ -71,7 +71,6 @@ function start(){
         -v ${RT}/pgsql:/var/lib/pgsql \
         --name revok-db \
         revok/database || fail "Failed to start container!"
-    sleep 2
 
     log "Starting activemq container ..."
     ${DOCKER_CMD} run -d \
@@ -80,14 +79,27 @@ function start(){
         -v ${RT}/activemq/data:/opt/apache-activemq/data \
         --name revok-mq \
         revok/messaging-server || fail "Failed to start container!" 
-    sleep 2
+
+    if [ -z ${SKIP_WAIT} ]; then
+        # wait for the database to finish initializing before proceeding
+        log "Waiting for database to become available ..."
+        DELAY=30
+        while : ; do
+            [[ -f "${RT}/pgsql/.initialized" ]] && { sleep 2; break; }
+            sleep 2
+            ((DELAY=DELAY-2))
+            [[ ${DELAY} -le 0 ]] && fail "We waited too long; aborting ..."
+        done
+    fi
 
     log "Starting rest-api container ..."
     ${DOCKER_CMD} run -d \
         -p ${REST_PORT}:${REST_PORT} \
         -v ${RT}/conf:${REVOK_HOME}/conf \
         -v ${RT}/log:/opt/revok/var/log \
-        --link revok-mq:localhost \
+        --name revok-rest \
+        --link revok-db:revok-db \
+        --link revok-mq:revok-mq \
         revok/rest || "Failed to start container!"
 
     log "Starting caroline container ..."
@@ -95,8 +107,8 @@ function start(){
         -v ${RT}/conf:${REVOK_HOME}/conf \
         -v ${RT}/report:${REVOK_HOME}/report \
         -v ${RT}/log:/opt/revok/var/log \
-        --link revok-db:localhost \
-        --link revok-mq:localhost \
+        --link revok-db:revok-db \
+        --link revok-mq:revok-mq \
         revok/caroline-node || fail "Failed to start container!"
 
     log "Starting webconsole container ..."
@@ -106,8 +118,7 @@ function start(){
         -v ${RT}/log:/opt/revok/var/log \
         -v ${RT}/httpd/conf.d:/etc/httpd/conf.d \
         -v ${RT}/httpd/log:/var/log/httpd \
-        --link revok-db:localhost \
-        --link revok-mq:localhost \
+        --link revok-rest:localhost \
         revok/webconsole || fail "Failed to start container!"
 }
 
