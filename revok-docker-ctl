@@ -118,7 +118,7 @@ function start(){
         -v ${RT}/log:/opt/revok/var/log \
         -v ${RT}/httpd/conf.d:/etc/httpd/conf.d \
         -v ${RT}/httpd/log:/var/log/httpd \
-        --link revok-rest:localhost \
+        --link revok-rest:revok-rest \
         revok/webconsole || fail "Failed to start container!"
 }
 
