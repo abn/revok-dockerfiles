@@ -16,10 +16,6 @@ if [ -z ${RT} ]; then
     RT=${BASE}/runtime
 fi
 
-if [ ! -d ${RT} ]; then
-    fail "Runtime directory does not exist at ${RT}"
-fi
-
 function build(){
     # build base seperately
     ${DOCKER_CMD} build --tag revok/base ./revok-base
@@ -55,6 +51,10 @@ function stop(){
 }
 
 function start(){
+    if [ ! -d ${RT} ]; then
+        fail "Runtime directory does not exist at ${RT}"
+    fi
+
     COUNT=$(status | wc -l)
 
     if [ ${COUNT} -gt 0 ]; then
