@@ -31,7 +31,7 @@ ENV REVOK_CONF=${REVOK_HOME}/conf
 ENV REVOK_VAR=${REVOK_HOME}/var
 
 ENV PHANTOMJS_VERSION=1.9.8
-ENV PHANTOMJS_URL=https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2
+ENV PHANTOMJS_URL=http://cnpmjs.org/mirrors/phantomjs/phantomjs-${PHANTOMJS_VERSION}-linux-x86_64.tar.bz2
 
 # install phantomjs
 RUN cd /tmp \
