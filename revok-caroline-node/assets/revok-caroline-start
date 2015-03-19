@@ -3,7 +3,7 @@
 export ROOT_PATH=${REVOK_HOME}
 source ${REVOK_HOME}/bin/setenv.sh
 
-SVC_NAME=rest
+SVC_NAME="caroline-`hostname`"
 SVC_LOG_FILE="${REVOK_HOME}/var/log/${SVC_NAME}.log"
 
 # init database
